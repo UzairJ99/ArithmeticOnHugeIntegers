@@ -2,7 +2,7 @@ public class TestProgram
 {
 	public static void main(String[] args) 
 	{
-		System.out.println("Uzair Jawaid; jawaidu; 400114899");
+		System.out.println("Uzair Jawaid");
 		System.out.println("Testing add and subtract along with constructors in between and at the end");
 		System.out.println("----------------------------------------------------------------------------");
 		System.out.println("Two positive numbers test ");
