@@ -3,7 +3,6 @@ import java.util.Random;
 //Uzair Jawaid
 //2019-01-19
 //HugeInteger will be a class which will handle arithmetic operations on large integers
-//Still refactoring to reduce code length
 
 public class HugeInteger 
 {
@@ -36,7 +35,13 @@ public class HugeInteger
 	//create integer from string
 	public HugeInteger(String val)
 	{
-		if (val.charAt(0) == '-')
+		if (val.length() == 1 && val.charAt(0) == '0')
+		{
+			this.negative = false; //set negative parameter
+			this.value = "0";
+			this.size = val.length();
+		}
+		else if (val.charAt(0) == '-')
 		{
 			//remove special characters
 				//code from https://stackoverflow.com/questions/14361556/remove-all-special-characters-in-java
@@ -56,6 +61,8 @@ public class HugeInteger
 		else
 		{
 			val = val.replaceAll("[^a-zA-Z0-9]", "");
+			val = val.replaceAll("[a-zA-Z]", "");
+			
 			
 			for(int i = 0; i < val.length(); i++)
 			{
@@ -63,6 +70,12 @@ public class HugeInteger
 			}
 			this.negative = false; //set negative parameter
 			this.value = val;
+			//check for empty string
+			if (val.equals(""))
+			{
+				this.value = "0";
+				this.size = 1;
+			}
 			this.size = val.length();
 		}
 	}
@@ -199,7 +212,7 @@ public class HugeInteger
 		}
 		else
 		{
-			if (this.getValue() > h.getValue())
+			if (this.compare(h) == 1)
 			{
 				a = this;
 				b = h;
@@ -258,7 +271,7 @@ public class HugeInteger
 				k--;
 			}
 			//this may return a negative number so append a negative sign to the beginning
-			if (this.getValue() < h.getValue())
+			if (this.compare(h) == -1)
 			{
 				String answer = new String(result);
 				finalResult = "-" + answer;
@@ -271,6 +284,133 @@ public class HugeInteger
 			bigDiff = new HugeInteger(finalResult);	
 		}
 		return bigDiff;
+	}
+	
+	public HugeInteger divide(HugeInteger h)
+	{
+		//variable to store how many groupings of h we can have in this number
+		HugeInteger count = new HugeInteger(h.value);
+		HugeInteger quotient;
+		if(h.negative)
+			count.negative = true;
+		//check for division by zero
+		else if (h.getValue() == 0)
+		{
+			quotient = new HugeInteger("^");
+			System.out.println("Undefined");
+			return quotient;
+		}
+		HugeInteger counter = new HugeInteger("1");
+		HugeInteger increment = new HugeInteger("1");
+		HugeInteger a = count;
+		HugeInteger b = this;
+		HugeInteger temp;
+		
+		//check fraction round down
+		if (a.compare(b) == 1)
+			counter = new HugeInteger("0");
+		
+		//count groupings
+		while(a.compare(b) == -1)
+		{
+			temp = count.add(h); //check what the next addition would be
+			count = count.add(h);
+			a = count;
+			b = this;
+			
+			//check for round down
+			if (temp.compare(b) == -1 || temp.compare(b) == 0)
+				counter = counter.add(increment);	
+		}
+		String val; 
+		//check sign
+		if (h.negative && this.negative)
+		{
+			val = counter.value;
+			quotient = new HugeInteger(val);
+			quotient.negative = false;
+		}
+		else if (h.negative || this.negative)
+		{
+			val = counter.value;
+			quotient = new HugeInteger(val);
+			quotient.negative = true;
+		}
+		else
+		{
+			val = counter.value;
+			quotient = new HugeInteger(val);
+			quotient.negative = false;
+		}
+		return quotient;
+	}
+	
+	public HugeInteger multiply(HugeInteger h)
+	{
+		//Variable to store the product
+		HugeInteger product = new HugeInteger("0");
+		//counter for repeated addition
+		HugeInteger i = new HugeInteger("0");
+		HugeInteger zero = new HugeInteger("0");
+		HugeInteger increment = new HugeInteger("1");
+		//check zero multiplication
+		if (this.compare(zero) == 0)
+			return product;
+		
+		//repeated addition of h's value to this value
+		while(i.compare(h) == -1)
+		{
+			product = product.add(this);
+			i = i.add(increment);
+		}
+		
+		//check sign
+		if(h.negative && this.negative)
+			product.negative = false;
+		else if (h.negative || this.negative)
+			product.negative = true;
+		else
+			product.negative = false;
+
+		return product;
+	}
+	
+	//checks huge integer values to see which is bigger
+	public int compare(HugeInteger h)
+	{
+		int val = 1;
+		if (this.size > h.size)
+			val = 1;
+		else if (this.size < h.size)
+			val = -1;
+		else if (this.size == h.size)
+		{
+			if (Character.getNumericValue(this.value.charAt(0)) > Character.getNumericValue(h.value.charAt(0)))
+				val = 1;
+			//if equal size in digits
+			else if (Character.getNumericValue(this.value.charAt(0)) == Character.getNumericValue(h.value.charAt(0)))
+			{
+				for (int i = 0; i < this.size; i++)
+				{
+					if (Character.getNumericValue(this.value.charAt(i)) > Character.getNumericValue(h.value.charAt(i)))
+					{
+						val = 1;
+						break;
+					}
+					//continue if still equal
+					else if (Character.getNumericValue(this.value.charAt(i)) == Character.getNumericValue(h.value.charAt(i)))
+						val = 0;
+					else
+					{
+						val = -1;
+						break;
+					}
+				}
+			}
+			else
+				val = -1;
+		}
+		return val;
 	}
 	
 	//output the huge  integer
